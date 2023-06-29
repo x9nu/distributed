@@ -21,7 +21,7 @@ func Start(ctx context.Context, serviceName, host, port string, registerHandlerF
 }
 
 func startService(ctx context.Context, serviceName, hsot, port string) context.Context {
-	ctx, cancel := context.WithCancel()
+	ctx, cancel := context.WithCancel(ctx)
 	var srv http.Server
 	srv.Addr = ":" + port // 本地+端口号
 
