@@ -32,7 +32,7 @@ func (fl filelog) Write(data []byte) (int, error) {
 	前缀是go，包含日期和时间（LstdFlags）
 */
 func Run(destination string) {
-	log = stlog.New(filelog(destination), "go", stlog.LstdFlags) // LstdFlags = Ldate | Ltime
+	log = stlog.New(filelog(destination), "Go: ", stlog.LstdFlags) // LstdFlags = Ldate | Ltime
 }
 
 func RegisterHandlers() {
