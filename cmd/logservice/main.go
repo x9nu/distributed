@@ -1,3 +1,4 @@
+/* 日志服务独立运行 */
 package main
 
 import (
