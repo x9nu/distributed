@@ -31,7 +31,7 @@ func startService(ctx context.Context, serviceName, hsot, port string) context.C
 	}() // IIFE 立即调用表达式，这是一种设计模式（Invoking the anonymous function immediately.the "()"" at the end of anonymous function）
 
 	go func() {
-		fmt.Printf("%v started.Press any key to stop. \n", serviceName)
+		fmt.Printf("%v started. Press any key to stop. \n", serviceName)
 		/* var s string 和 fmt.Scanln(&s) 这两句话表示，如果接收到了任何按键，代码就会接着向下走*/
 		var s string
 		fmt.Scanln(&s)
