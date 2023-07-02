@@ -21,7 +21,7 @@ func main() {
 		- ListenAndServe()方法里 调用了net.Listen，
 			- Listen函数有一部分注解：一个未指定的文字IP地址，侦听所有可用的，本地系统的单播和任意播IP地址。
 	*/
-	srv.Addr = ":" + registry.ServiceHost
+	srv.Addr = ":" + registry.ServicePort
 
 	go func() {
 		log.Println(srv.ListenAndServe()) // 启动出错打印
