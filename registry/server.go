@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-const ServiceHost = "localhsot"
+const ServiceHost = "localhost"
 const ServicePort = "3000"
 const ServicesUrl = "http://" + ServiceHost + ":" + ServicePort + "/services"
 
