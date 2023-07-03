@@ -6,21 +6,29 @@ package service
 
 import (
 	"context"
+	"distributed/registry"
 	"fmt"
 	"log"
 	"net/http"
 )
 
 /* 启动服务 */
-func Start(ctx context.Context, serviceName, host, port string, registerHandlerFunc func()) (context.Context, error) {
+func Start(ctx context.Context, host, port string, reg registry.Registration, registerHandlerFunc func()) (context.Context, error) {
 	// 注册处理器
 	registerHandlerFunc()
-	ctx = startService(ctx, serviceName, host, port) // 启动service
+	ctx = startService(ctx, reg.ServiceName, host, port) // 启动 Web service
+
+	/* 调用 POST 以注册服务 */
+	err := registry.RegisterService(reg)
+	if err != nil {
+		return ctx, err
+	}
 
 	return ctx, nil
 }
 
-func startService(ctx context.Context, serviceName, hsot, port string) context.Context {
+// service.ServiceName 字段。这种写法不是语法糖，而是利用结构体的字段选择器来直接访问结构体中的字段
+func startService(ctx context.Context, serviceName registry.ServiceName, hsot, port string) context.Context {
 	ctx, cancel := context.WithCancel(ctx)
 	var srv http.Server
 	srv.Addr = ":" + port // 本地+端口号
