@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"distributed/log"
+	"distributed/registry"
 	"distributed/service"
 	"fmt"
 	stlog "log"
@@ -11,9 +12,13 @@ import (
 func main() {
 	log.Run("./ditributed.log")
 	host, port := "localhost", "4000"
+	serviceAddress := fmt.Sprintf("http://%v:%v", host, port) // PostUrl
+	r := registry.Registration{
+		ServiceName: "Log Service",
+		ServiceUrl:  serviceAddress,
+	}
 	ctx, err := service.Start(
 		context.Background(), // Background returns a non-nil, empty Context. It is never canceled, has no values, and has no deadline.
-		"Log Service",
 		host,
 		port,
 		/*
@@ -24,6 +29,7 @@ func main() {
 				- RegisterHandlers 这个函数只有在后续代码中 调用的时候 被执行
 				- 如果 RegisterHandlers 这个函数在后续没被调用，则它不会产生任何影响
 		*/
+		r,
 		log.RegisterHandlers,
 	)
 	if err != nil {
