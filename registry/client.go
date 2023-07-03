@@ -1,6 +1,18 @@
 /*
 	服务注册
 	比如，logservice。调用这里的函数进行自动注册
+	步骤：
+		- 先启动 registryservice
+		- logservice 启动时， 集中服务管理Start() 会调用 client的RegisterService()
+		- RegisterService()被Handle接受，ServeHTTP将请求派遣到与请求的URL最匹配的模式对应的处理器Handle。
+
+			URL 是 http://localhost:3000/services 请求如下
+			{
+    			"ServiceName":"Log Service",
+    			"ServiceUrl":"http://localhost:4000/log"
+			}
+
+		- 最后成功效果 => Adding service: Log Service with http://localhost:4000
 */
 package registry
 
