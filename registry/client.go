@@ -43,3 +43,21 @@ func RegisterService(r Registration) error {
 	// 如果上述三种错误都没发生
 	return nil
 }
+
+/* 关闭服务
+应该放在 Service包 的 startService() 两个取消的协程中 */
+func ShutdownService(url string) error {
+	req, err := http.NewRequest(http.MethodDelete, ServicesUrl, bytes.NewBuffer([]byte(url)))
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Content-type", "text/plain")
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to deregister service. Registry service responsed with code %v", res.StatusCode)
+	}
+	return nil // 如果都没错就取消成功
+}
