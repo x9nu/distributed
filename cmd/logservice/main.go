@@ -14,8 +14,10 @@ func main() {
 	host, port := "localhost", "4000"
 	serviceAddress := fmt.Sprintf("http://%v:%v", host, port) // PostUrl
 	r := registry.Registration{
-		ServiceName: "Log Service",
-		ServiceUrl:  serviceAddress,
+		ServiceName:      registry.LogService, // 这个 ServiceName 必须和 服务发现 的保持一致
+		ServiceUrl:       serviceAddress,
+		RequiredServices: make([]registry.ServiceName, 0),
+		ServiceUpdateUrl: serviceAddress + "/services",
 	}
 	ctx, err := service.Start(
 		context.Background(), // Background returns a non-nil, empty Context. It is never canceled, has no values, and has no deadline.

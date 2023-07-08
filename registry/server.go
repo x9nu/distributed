@@ -2,6 +2,7 @@
 package registry
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -16,12 +17,12 @@ const ServicesUrl = "http://" + ServiceHost + ":" + ServicePort + "/services"
 
 type registry struct {
 	registrations []Registration
-	mutex         *sync.Mutex // 保证在并发访问的时候，Registration 是线程安全的
+	mutex         *sync.RWMutex // 保证在并发访问的时候，Registration 是线程安全的
 }
 
 var reg = registry{
 	registrations: make([]Registration, 0),
-	mutex:         new(sync.Mutex),
+	mutex:         new(sync.RWMutex),
 } // 建立一个包级reg变量
 
 /* 用于注册 */
@@ -29,6 +30,47 @@ func (r *registry) add(reg Registration) error {
 	r.mutex.Lock()
 	r.registrations = append(r.registrations, reg)
 	r.mutex.Unlock()
+	// 在服务注册时刚好，把需要的依赖服务请求过来
+	err := r.SendRequiredServices(reg)
+	return err
+}
+
+// 把需要的依赖服务请求过来
+func (r registry) SendRequiredServices(reg Registration) error {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+
+	var p patch
+	// 找到 某个服务所有 RequiredServices （依赖），把它们全部添加到Added中
+	for _, service := range r.registrations {
+		for _, reqService := range reg.RequiredServices {
+			if service.ServiceName == reqService {
+				p.Added = append(p.Added, patchEntry{
+					Name: service.ServiceName,
+					Url:  service.ServiceUrl,
+				})
+			}
+		}
+	}
+
+	err := r.sendPatch(p, reg.ServiceUpdateUrl)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r registry) sendPatch(p patch, url string) error {
+	data, err := json.Marshal(p)
+	if err != nil {
+		return err
+	}
+	// NewBuffer使用buf作为初始内容创建并初始化一个Buffer。本函数用于创建一个用于读取已存在数据的buffer；
+	// 也用于指定用于写入的内部缓冲的大小，此时，buf应为一个具有指定容量但长度为0的切片。buf会被作为返回值的底层缓冲切片。
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(data))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
