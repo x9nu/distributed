@@ -9,7 +9,7 @@
 			URL 是 http://localhost:3000/services 请求如下
 			{
     			"ServiceName":"Log Service",
-    			"ServiceUrl":"http://localhost:4000/log"
+    			"ServiceURL":"http://localhost:4000/log"
 			}
 
 		- 最后成功效果 => Adding service: Log Service with http://localhost:4000
@@ -51,15 +51,15 @@ func (prv *providers) Update(pat patch) {
 			*/
 			prv.services[patchEntry.Name] = make([]string, 0)
 		}
-		// 将 patchEntry.Url 添加进 键为prv.services[patchEntry.Name] 的切片中
-		prv.services[patchEntry.Name] = append(prv.services[patchEntry.Name], patchEntry.Url)
+		// 将 patchEntry.URL 添加进 键为prv.services[patchEntry.Name] 的切片中
+		prv.services[patchEntry.Name] = append(prv.services[patchEntry.Name], patchEntry.URL)
 	}
 	// 2.移除
 	// 在patch的removed里找，如果providerUrl存在，则将他们对比，相同的去掉
 	for _, patchEntry := range pat.Removed {
 		if providerUrls, ok := prv.services[patchEntry.Name]; ok {
 			for i := range providerUrls {
-				if providerUrls[i] == patchEntry.Url {
+				if providerUrls[i] == patchEntry.URL {
 					prv.services[patchEntry.Name] = append(providerUrls[:i], providerUrls[i+1:]...)
 				}
 			}
@@ -80,6 +80,7 @@ func GetProvider(name ServiceName) (string, error) {
 	return prov.get(name)
 }
 
+// 服务有变化，接收更新的Handler
 type serviceUpdateHandler struct{}
 
 func (suh serviceUpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -100,10 +101,22 @@ func (suh serviceUpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	// [插桩] 输出一句话，看是否收到更新
+	// => 输出的案例，依赖服务已注销：{[] [{LogService http://localhost:4000}]}，第一个元素是Added，第二个是Removed
+	// fmt.Printf("Update received %v\n", p)
 	prov.Update(p)
 }
 
 func RegisterService(r Registration) error {
+	/* 心跳检查 */
+	heartUrl, err := url.Parse(r.HeartbeatURL)
+	if err != nil {
+		return err
+	}
+	http.HandleFunc(heartUrl.Path, func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	/* 更新动作 */
 	serviceUpdateUrl, err := url.Parse(r.ServiceUpdateUrl) // 解析成 url 类型
 	if err != nil {

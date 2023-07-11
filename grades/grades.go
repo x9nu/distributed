@@ -5,7 +5,6 @@ import (
 	"sync"
 )
 
-// Student
 type Student struct {
 	ID        string
 	FirstName string
@@ -18,26 +17,27 @@ func (s Student) Average() float32 {
 	for _, grade := range s.Grades {
 		result += grade.Score
 	}
-	return result / float32(len((s.Grades)))
+
+	return result / float32(len(s.Grades))
 }
 
 type Students []Student
 
 var (
-	students     Students
-	studentMutex *sync.Mutex
+	students      Students
+	studentsMutex sync.Mutex
 )
 
 func (ss Students) GetByID(id string) (*Student, error) {
-	for i, _ := range ss {
+	for i := range ss {
 		if ss[i].ID == id {
 			return &ss[i], nil
 		}
 	}
-	return nil, fmt.Errorf("student with ID %d not found", id)
+
+	return nil, fmt.Errorf("student with ID %s not found", id)
 }
 
-// Grade
 type GradeType string
 
 const (

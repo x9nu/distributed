@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+	registry.SetupRegistryService()
 	http.Handle("/services", registry.RegistrationService{})
 
 	ctx, cancel := context.WithCancel(context.Background()) // WithCancel()第二个return 是一个函数：func() { c.cancel(true, Canceled) }

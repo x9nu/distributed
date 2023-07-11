@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"distributed/grades"
 	"distributed/log"
 	"distributed/registry"
 	"distributed/service"
@@ -14,9 +15,10 @@ func main() {
 	serviceAddress := fmt.Sprintf("http://%v:%v", host, port) // PostUrl
 	r := registry.Registration{
 		ServiceName:      registry.GradingService, // 这个 ServiceName 必须和 服务发现 的保持一致
-		ServiceUrl:       serviceAddress,
+		ServiceURL:       serviceAddress,
 		RequiredServices: []registry.ServiceName{registry.LogService},
 		ServiceUpdateUrl: serviceAddress + "/services",
+		HeartbeatURL:     serviceAddress + "/heartbeat",
 	}
 	ctx, err := service.Start(
 		context.Background(), // Background returns a non-nil, empty Context. It is never canceled, has no values, and has no deadline.
@@ -31,7 +33,13 @@ func main() {
 				- 如果 RegisterHandlers 这个函数在后续没被调用，则它不会产生任何影响
 		*/
 		r,
-		log.RegisterHandlers,
+		/*	！！！
+			报错Error retrieving students:  json: cannot unmarshal number into Go value of type grades.Students
+			我还一直以为是Grade包哪里写错了造成数据无法正常序列化
+			甚至去portal打桩测试 想尝试在哪里defer出去的
+			↓ 结果是这里之前注册成其他服务了，我踏马居然没注册GradingService ↓
+		*/
+		grades.RegisterHandlers,
 	)
 	if err != nil {
 		stlog.Fatalln(err) // Fatalln等价于{l.Println(v...); os.Exit(1)}
