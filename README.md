@@ -66,3 +66,4 @@ go run cmd/portal/main.go
 	/students/{:id}/grades
 ```
 
+![图片](https://github.com/x9nu/distributed/blob/main/docs/rendering.png)
